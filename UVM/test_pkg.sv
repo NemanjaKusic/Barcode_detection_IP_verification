@@ -6,6 +6,10 @@ package test_pkg;
 	import uvm_pkg::*;
 	`include "uvm_macros.svh"
 	
+	import axi_lite_agent_pkg::*;
+	import seq_pkg::*;
+	
+	`include "sobel_env.sv"
 	// Include all tests here:
 	`include "base_test.sv"
 
