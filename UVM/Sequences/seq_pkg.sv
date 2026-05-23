@@ -11,6 +11,7 @@ package seq_pkg;
 	import axi_lite_agent_pkg::*;  //need to add like this instead so that enums inside axi_lite_seq_item can be used
  
 	`include "start_pulse_seq.sv"
+	`include "wait_for_ready_seq.sv"
 
 endpackage 
 

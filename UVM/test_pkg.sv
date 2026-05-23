@@ -7,6 +7,7 @@ package test_pkg;
 	`include "uvm_macros.svh"
 	
 	import axi_lite_agent_pkg::*;
+	import axi_full_agent_pkg::*;
 	import seq_pkg::*;
 	
 	`include "sobel_env.sv"
