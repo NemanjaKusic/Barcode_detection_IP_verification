@@ -10,9 +10,11 @@ package test_pkg;
 	import axi_full_agent_pkg::*;
 	import seq_pkg::*;
 	
+	`include "sobel_scoreboard.sv"
 	`include "sobel_env.sv"
 	// Include all tests here:
 	`include "base_test.sv"
+	`include "test_basic_uniform.sv"
 
 endpackage
 

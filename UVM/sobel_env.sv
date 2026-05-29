@@ -7,6 +7,7 @@ class sobel_env extends uvm_env;
 
 	axi_lite_agent lite_slave_agent;
 	axi_full_agent full_master_agent;
+	sobel_scoreboard scoreboard;
 
 	virtual axi_lite_if lite_vif;
 	virtual axi_full_if full_vif;
@@ -33,6 +34,7 @@ class sobel_env extends uvm_env;
 		
 		lite_slave_agent = axi_lite_agent::type_id::create("lite_slave_agent", this);
 		full_master_agent = axi_full_agent::type_id::create("full_master_agent", this);
+		scoreboard        = sobel_scoreboard::type_id::create("scoreboard", this);
 			
 	endfunction : build_phase
    

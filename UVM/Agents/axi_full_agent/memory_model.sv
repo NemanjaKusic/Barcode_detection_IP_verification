@@ -59,6 +59,51 @@ class memory_model extends uvm_object;
             write_byte(addr + i, data[i]);
     endfunction
 
+	// Load a text file into memory at a given address
+	function void load_file(longint unsigned addr, string path);
+		int fh;
+		string line;
+		int unsigned value;
+		longint unsigned offset;
+		int unsigned line_no;
+
+		fh = $fopen(path, "r");
+		if (fh == 0) begin
+			`uvm_error("MEM", $sformatf("Could not open file: %s", path))
+			return;
+		end
+
+		offset = 0;
+		line_no = 0;
+
+		while (!$feof(fh)) begin
+			//void'($fgets(line, fh));
+			$fgets(line, fh);
+			line_no++;
+
+			// Skip empty lines
+			if (line.len() == 0) continue;
+
+			// Parse the line as a decimal number
+			if ($sscanf(line, "%d", value) != 1) begin
+				`uvm_warning("MEM", $sformatf("Could not parse line %0d of %s: %s", line_no, path, line))
+				continue;
+			end
+
+			// Check value fits in a byte
+			if (value > 255) begin
+				`uvm_warning("MEM", $sformatf("Value %0d on line %0d of %s exceeds 8 bits", value, line_no, path))
+			end
+
+			write_byte(addr + offset, value[7:0]);
+			offset++;
+		end
+
+		$fclose(fh);
+
+		`uvm_info("MEM", $sformatf("Loaded %0d bytes from text file %s into 0x%0h", offset, path, addr), UVM_LOW)
+	endfunction
+
     // Check to see how many addresses were written to
     function int unsigned size();
         return mem.num();
