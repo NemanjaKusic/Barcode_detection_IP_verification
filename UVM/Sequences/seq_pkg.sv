@@ -12,6 +12,7 @@ package seq_pkg;
  
 	`include "start_pulse_seq.sv"
 	`include "wait_for_ready_seq.sv"
+	`include "program_base_addr_seq.sv"
 
 endpackage 
 

@@ -13,8 +13,9 @@ package test_pkg;
 	`include "sobel_scoreboard.sv"
 	`include "sobel_env.sv"
 	// Include all tests here:
-	`include "base_test.sv"
-	`include "test_basic_uniform.sv"
+	`include "Tests/base_test.sv"
+	`include "Tests/test_basic_uniform.sv"
+	`include "Tests/test_basic_barcode.sv"
 
 endpackage
 
