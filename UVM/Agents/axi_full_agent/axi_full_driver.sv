@@ -7,6 +7,7 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
 
     virtual axi_full_if vif;
     memory_model mem;
+    axi_full_config cfg;
 
     // Internal queues - for communication betwwen channel tasks
     // Holds AR channel info.
@@ -39,6 +40,12 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
 
         if (!uvm_config_db#(memory_model)::get(this, "", "shared_mem", mem))
             `uvm_fatal("NOMEM", {"shared memory model must be set: ", get_full_name(), ".mem"})
+            
+        // Get config from agent (if not provided, create a default fast config)
+        if (!uvm_config_db#(axi_full_config)::get(this, "", "axi_cfg", cfg)) begin
+            `uvm_info("AXI_FULL_DRV", "No config from agent, using default", UVM_LOW)
+            cfg = axi_full_config::type_id::create("axi_cfg");
+        end    
     endfunction
 
     task run_phase(uvm_phase phase);
@@ -73,7 +80,18 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
     // AR channel - accept incoming read requests
     task ar_channel();
         ar_req_t req;
+        int bp_duration;
+        
         forever begin
+            // Backpressure check: random chance of dropping ARREADY
+            if ($urandom_range(0, 99) < cfg.arready_backpressure_pct) begin
+                // Drop ARREADY for a random number of cycles
+                @(vif.cb);
+                vif.cb.arready <= 1'b0;
+                bp_duration = $urandom_range(1, cfg.backpressure_max_duration);
+                repeat (bp_duration) @(vif.cb);
+            end
+        
             @(vif.cb);
             vif.cb.arready <= 1'b1;
             @(vif.cb iff vif.cb.arvalid);	// ARREADY and ARVALID both high
@@ -94,6 +112,8 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
         ar_req_t req;
         bit [31:0] beat_data;
         int total_beats;
+        int ar_to_r_latency;
+        int inside_burst_latency;
 
         forever begin
             // Wait until an AR is in the queue
@@ -101,10 +121,22 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
             req = ar_queue.pop_front();
             total_beats = req.len + 1;
 
+            // Add AR-to-R latency
+            ar_to_r_latency = $urandom_range(cfg.min_ar_to_r_latency, cfg.max_ar_to_r_latency);
+            repeat (ar_to_r_latency) 
+                @(vif.cb);
+
             // Drive each beat
             for (int beat = 0; beat < total_beats; beat++) begin
                 beat_data = mem.read_word(req.addr + beat * 4);
-
+                
+                // Add latencies inisde a burst (skip on first beat of a burst)
+                if (beat > 0) begin
+                    inside_burst_latency = $urandom_range(cfg.min_inside_burst_latency, cfg.max_inside_burst_latency);
+                    repeat (inside_burst_latency) 
+                        @(vif.cb);
+                end
+                
                 @(vif.cb);
                 vif.cb.rvalid <= 1'b1;
                 vif.cb.rid    <= req.id;
@@ -113,6 +145,7 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
                 vif.cb.rlast  <= (beat == total_beats - 1);
 
                 @(vif.cb iff vif.cb.rready);	// Handshake completed on this clock
+                vif.cb.rvalid <= 1'b0;
             end
 
             // Reset R signals after burst
@@ -131,7 +164,18 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
     // AW channel - accept incoming write address, length, id
     task aw_channel();
         aw_req_t req;
+        int bp_duration;
+        
         forever begin
+            // Backpressure check: random chance of dropping AWREADY
+            if ($urandom_range(0, 99) < cfg.awready_backpressure_pct) begin
+                // Drop AWREADY for a random number of cycles
+                @(vif.cb);
+                vif.cb.awready <= 1'b0;
+                bp_duration = $urandom_range(1, cfg.backpressure_max_duration);
+                repeat (bp_duration) @(vif.cb);
+            end
+        
             @(vif.cb);
             vif.cb.awready <= 1'b1;
             @(vif.cb iff vif.cb.awvalid);
@@ -152,6 +196,7 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
         aw_req_t current;
         int beat_idx;
         int total_beats;
+        int bp_duration;
 
         forever begin
             // Wait for an AW in the queue
@@ -161,6 +206,16 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
             beat_idx = 0;
 
             while (beat_idx < total_beats) begin
+            
+                // Backpressure check: random chance of dropping WREADY
+                if ($urandom_range(0, 99) < cfg.arready_backpressure_pct) begin
+                    // Drop WREADY for a random number of cycles
+                    @(vif.cb);
+                    vif.cb.wready <= 1'b0;
+                    bp_duration = $urandom_range(1, cfg.backpressure_max_duration);
+                    repeat (bp_duration) @(vif.cb);
+                end
+            
                 @(vif.cb);
                 vif.cb.wready <= 1'b1;
                 @(vif.cb iff vif.cb.wvalid);	// Handshake - then write beat into memory
@@ -181,13 +236,20 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
     // B channel - send write response after burst is complete
     task b_channel();
         aw_req_t req;
+        int wlast_to_b_latency;
+        
         forever begin
             wait (aw_queue.size() > 0);		// Wait for AW channel to complete
 
             @(vif.cb iff (vif.cb.wlast && vif.cb.wvalid && vif.cb.wready));		// Wait for W channel to complete
 
             req = aw_queue.pop_front();
-
+            
+            // Add WLAST-to-B latency
+            wlast_to_b_latency = $urandom_range(cfg.min_wlast_to_b_latency, cfg.max_wlast_to_b_latency);
+            repeat (wlast_to_b_latency)
+                @(vif.cb);
+            
             // Drive B response singals
             @(vif.cb);
             vif.cb.bvalid <= 1'b1;

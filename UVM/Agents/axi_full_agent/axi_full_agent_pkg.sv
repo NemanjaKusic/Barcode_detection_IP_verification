@@ -9,7 +9,8 @@ package axi_full_agent_pkg;
    //////////////////////////////////////////////////////////
    // include Agent components : driver,monitor,sequencer
    /////////////////////////////////////////////////////////
-   //import configurations_pkg::*;   
+   
+   import config_pkg::*;   
    
    `include "memory_model.sv"
    `include "axi_full_seq_item.sv"

@@ -26,7 +26,7 @@ class axi_lite_driver extends uvm_driver #(axi_lite_seq_item);
             seq_item_port.get_next_item(req);
             `uvm_info("AXI_LITE_DRV",
                       $sformatf("Driving: %s", req.sprint()),
-                      UVM_LOW)
+                      UVM_MEDIUM)
             drive_transaction(req);
             seq_item_port.item_done();
         end

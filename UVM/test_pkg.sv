@@ -6,6 +6,7 @@ package test_pkg;
 	import uvm_pkg::*;
 	`include "uvm_macros.svh"
 	
+	import config_pkg::*;
 	import axi_lite_agent_pkg::*;
 	import axi_full_agent_pkg::*;
 	import seq_pkg::*;
@@ -16,6 +17,9 @@ package test_pkg;
 	`include "Tests/base_test.sv"
 	`include "Tests/test_basic_uniform.sv"
 	`include "Tests/test_basic_barcode.sv"
+	`include "Tests/test_stress_latency.sv"
+	`include "Tests/test_stress_backpressure.sv"
+	`include "Tests/test_stress_combined.sv"
 
 endpackage
 

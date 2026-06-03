@@ -1,23 +1,32 @@
-`ifndef TEST_BASIC_BARCODE_SV
-`define TEST_BASIC_BARCODE_SV 
+`ifndef TEST_STRESS_BACKPRESSURE_SV
+`define TEST_STRESS_BACKPRESSURE_SV 
 
 // Inside Vivado: settings -> simmulation -> simulation add:
-// -testplusarg UVM_TESTNAME=test_basic_barcode -testplusarg UVM_VERBOSITY=UVM_LOW -sv_seed 2013
+// -testplusarg UVM_TESTNAME=test_stress_backpressure -testplusarg UVM_VERBOSITY=UVM_LOW -sv_seed 2013
 
-class test_basic_barcode extends uvm_test;
+class test_stress_backpressure extends uvm_test;
 
-    `uvm_component_utils(test_basic_barcode)
+    `uvm_component_utils(test_stress_backpressure)
 	
 	sobel_env env;
 	memory_model shared_mem;
+	axi_full_config axi_cfg;
 	
-	function new(string name = "test_basic_barcode", uvm_component parent = null);
+	function new(string name = "test_stress_backpressure", uvm_component parent = null);
 		super.new(name, parent);
     endfunction
 
     function void build_phase(uvm_phase phase);
 		super.build_phase(phase);
-		`uvm_info("TEST_BASIC_BARCODE", "build_phase running", UVM_LOW)
+		`uvm_info("TEST_STRESS_BACKPRESSURE", "build_phase running", UVM_LOW)
+		
+		// ------ Create AXI-Full config in latency stress mode ------
+        axi_cfg = axi_full_config::type_id::create("axi_cfg");
+        //axi_cfg.set_mode(AXI_FULL_MODE_LATENCY);
+        //axi_cfg.set_mode(AXI_FULL_MODE_FAST);
+        axi_cfg.set_mode(AXI_FULL_MODE_BACKPRESSURE);
+        //axi_cfg.set_mode(AXI_FULL_MODE_COMBINED);
+		uvm_config_db#(axi_full_config)::set(this, "env.full_master_agent", "axi_cfg", axi_cfg);
 		
 		shared_mem = memory_model::type_id::create("shared_mem");
         uvm_config_db#(memory_model)::set(this, "env.*", "shared_mem", shared_mem);
@@ -31,12 +40,13 @@ class test_basic_barcode extends uvm_test;
         longint unsigned   base_addr;
     
         phase.raise_objection(this);
-        `uvm_info("TEST_BASIC_BARCODE", "run_phase running", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", "run_phase running", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", $sformatf("%s", axi_cfg.print_mode()), UVM_LOW)
     
         base_addr = 32'h1000_0000;
         
         // ------ Preload input image from file ------
-        `uvm_info("TEST_BASIC_BARCODE", "Loading input image from file", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", "Loading input image from file", UVM_LOW)
         // Put the golden file inside the root of Vivado generated project file 
         shared_mem.load_file(base_addr, "../../../../golden/IMG-01/input.txt");
     
@@ -47,18 +57,18 @@ class test_basic_barcode extends uvm_test;
         env.scoreboard.golden_gy_path = "../../../../golden/IMG-01/output_2.txt";
 		
 		// ------ Program the base_address register ------
-        `uvm_info("TEST_BASIC_BARCODE", "Programming base_address register", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", "Programming base_address register", UVM_LOW)
         pba_seq = program_base_addr_seq::type_id::create("pba_seq");
         pba_seq.base_address_value = base_addr[31:0];
         pba_seq.start(env.lite_slave_agent.seqr);
     
         // ------ Start pulse ------
-        `uvm_info("TEST_BASIC_BARCODE", "Issuing start pulse", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", "Issuing start pulse", UVM_LOW)
         start_seq = start_pulse_seq::type_id::create("start_seq");
         start_seq.start(env.lite_slave_agent.seqr);
     
         // ------ Wait for ready ------
-        `uvm_info("TEST_BASIC_BARCODE", "Waiting for DUT ready (timeout: 200 ms)", UVM_LOW)
+        `uvm_info("TEST_STRESS_BACKPRESSURE", "Waiting for DUT ready (timeout: 200 ms)", UVM_LOW)
         wait_seq = wait_for_ready_seq::type_id::create("wait_seq");
     
         fork
@@ -67,17 +77,17 @@ class test_basic_barcode extends uvm_test;
             end
             begin
                 #200ms;
-                `uvm_warning("TEST_BASIC_BARCODE", "Timeout expired waiting for ready")
+                `uvm_warning("TEST_STRESS_BACKPRESSURE", "Timeout expired waiting for ready")
             end
         join_any
         disable fork;
     
         if (wait_seq.ready_observed) begin
-            `uvm_info("TEST_BASIC_BARCODE", $sformatf("DUT ready after %0d polls. Running scoreboard.",
+            `uvm_info("TEST_STRESS_BACKPRESSURE", $sformatf("DUT ready after %0d polls. Running scoreboard.",
                       wait_seq.reads_done), UVM_LOW)
             env.scoreboard.check_mem();
         end else begin
-            `uvm_error("TEST_BASIC_BARCODE", "DUT did not assert ready within watchdog timeout")
+            `uvm_error("TEST_STRESS_BACKPRESSURE", "DUT did not assert ready within timeout")
         end
     
         // Check that input pixels from input.txt and output pixels from DUT are inside the shared_mem

@@ -136,7 +136,7 @@ class axi_lite_monitor extends uvm_monitor;
             
             `uvm_info("AXI_LITE_MON",
                       $sformatf("Read txn complete: %s", read_txn.sprint()),
-                      UVM_LOW)
+                      UVM_MEDIUM)
 //read_txn.convert2string()
             ap.write(read_txn);
         end

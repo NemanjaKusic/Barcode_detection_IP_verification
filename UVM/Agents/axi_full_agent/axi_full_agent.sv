@@ -10,6 +10,7 @@ class axi_full_agent extends uvm_agent;
 	axi_full_driver drv;
 	axi_full_sequencer seqr;
 	axi_full_monitor mon;
+	axi_full_config cfg;
 
 	virtual axi_full_if full_vif;
 	
@@ -28,6 +29,14 @@ class axi_full_agent extends uvm_agent;
 		/************Setting to configuration database********************/
 		uvm_config_db#(virtual axi_full_if)::set(this, "*", "axi_full_vif", full_vif);
 		/*****************************************************************/
+		
+		// ------ Get config from test (if test didn't set one, create a default) ------
+        if (!uvm_config_db#(axi_full_config)::get(this, "", "axi_cfg", cfg)) begin
+            `uvm_info("AXI_FULL_AGENT", "No config provided, using default (fast mode)", UVM_LOW)
+            cfg = axi_full_config::type_id::create("axi_cfg");
+        end
+        // Pass config down to the driver
+        uvm_config_db#(axi_full_config)::set(this, "drv", "axi_cfg", cfg);
 			
 		mon = axi_full_monitor::type_id::create("mon", this);	
 	    drv = axi_full_driver::type_id::create("drv", this);
