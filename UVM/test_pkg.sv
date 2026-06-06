@@ -20,6 +20,20 @@ package test_pkg;
 	`include "Tests/test_stress_latency.sv"
 	`include "Tests/test_stress_backpressure.sv"
 	`include "Tests/test_stress_combined.sv"
+	`include "Tests/test_basic_v_edge.sv"
+	`include "Tests/test_zero_image.sv"
+	`include "Tests/test_max_image.sv"
+	`include "Tests/test_v_edge_neg.sv"
+	`include "Tests/test_h_edge_pos.sv"
+	`include "Tests/test_diagonal.sv"
+	`include "Tests/test_chessboard.sv"
+	`include "Tests/test_impulse.sv"
+	`include "Tests/test_stripe_edge.sv"
+	`include "Tests/test_realistic_1.sv"
+	`include "Tests/test_realistic_2.sv"
+	`include "Tests/test_realistic_3.sv"
+	`include "Tests/test_realistic_4.sv"
+	`include "Tests/test_realistic_5.sv"
 
 endpackage
 
