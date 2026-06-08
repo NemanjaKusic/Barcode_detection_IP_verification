@@ -103,6 +103,12 @@ class memory_model extends uvm_object;
 
 		`uvm_info("MEM", $sformatf("Loaded %0d bytes from text file %s into 0x%0h", offset, path, addr), UVM_LOW)
 	endfunction
+	
+	// Fill a region with a constant value
+    function void fill(longint unsigned start_addr, longint unsigned length, byte unsigned value);
+        for (longint unsigned i = 0; i < length; i++)
+            write_byte(start_addr + i, value);
+    endfunction
 
     // Check to see how many addresses were written to
     function int unsigned size();

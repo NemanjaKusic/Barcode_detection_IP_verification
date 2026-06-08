@@ -141,11 +141,14 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
                 vif.cb.rvalid <= 1'b1;
                 vif.cb.rid    <= req.id;
                 vif.cb.rdata  <= beat_data;
-                vif.cb.rresp  <= 2'b00;   // OKAY
+                vif.cb.rresp  <= cfg.force_rresp;   // usually OKAY
                 vif.cb.rlast  <= (beat == total_beats - 1);
 
                 @(vif.cb iff vif.cb.rready);	// Handshake completed on this clock
+                // Reset R signals after each handshake
                 vif.cb.rvalid <= 1'b0;
+                vif.cb.rresp  <= 2'b00;
+                vif.cb.rlast  <= 1'b0;
             end
 
             // Reset R signals after burst
@@ -154,6 +157,7 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
             vif.cb.rlast  <= 1'b0;
             vif.cb.rdata  <= '0;
             vif.cb.rid    <= '0;
+            vif.cb.rresp  <= 2'b00;
 
             `uvm_info("AXI_FULL_DRV", $sformatf("Read burst complete: addr=0x%08h beats=%0d", req.addr, total_beats), UVM_LOW)
         end
@@ -254,11 +258,11 @@ class axi_full_driver extends uvm_driver;   // no #(seq_item) - data from memory
             @(vif.cb);
             vif.cb.bvalid <= 1'b1;
             vif.cb.bid    <= req.id;
-            vif.cb.bresp  <= 2'b00;   // OKAY
+            vif.cb.bresp  <= cfg.force_rresp;   // usually OKAY
             @(vif.cb iff vif.cb.bready);
 
 			// Reset the B channel signals
-            @(vif.cb);
+            //@(vif.cb);
             vif.cb.bvalid <= 1'b0;
             vif.cb.bid    <= '0;
             vif.cb.bresp  <= 2'b00;

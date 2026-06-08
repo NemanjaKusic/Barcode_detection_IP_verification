@@ -30,7 +30,11 @@ class axi_full_config extends uvm_object;
     rand int wready_backpressure_pct  = 0;
     rand int arready_backpressure_pct = 0;
     // max cycles READY stays low
-    rand int backpressure_max_duration = 0; 
+    rand int backpressure_max_duration = 0;
+    
+    // What response should the slave send to master
+    bit [1:0] force_rresp = 2'b00;   // OKAY by default
+    bit [1:0] force_bresp = 2'b00;   // OKAY by default 
 
     // Constraints
     constraint c_latency_ranges {
@@ -101,15 +105,16 @@ class axi_full_config extends uvm_object;
         endcase
     endfunction
 
-    // Print the values of latencies and backpressures
+    // Print the values of latencies and backpressures and responses
     function string print_mode();
         return $sformatf(
-            "AR-to-R latency: [%0d - %0d], Inside burst gap: [%0d - %0d], AW-to-B latency: [%0d - %0d], Backpressure: AW=%0d%% W=%0d%% AR=%0d%% (max %0d cycles)",
+            "AR-to-R latency: [%0d - %0d], Inside burst gap: [%0d - %0d], AW-to-B latency: [%0d - %0d], Backpressure: AW=%0d%% W=%0d%% AR=%0d%% (max %0d cycles), force_rresp: b'%b, force_bresp: b'%b",
             min_ar_to_r_latency, max_ar_to_r_latency,
             min_inside_burst_latency, max_inside_burst_latency,
             min_wlast_to_b_latency, max_wlast_to_b_latency,
             awready_backpressure_pct, wready_backpressure_pct,
-            arready_backpressure_pct, backpressure_max_duration);
+            arready_backpressure_pct, backpressure_max_duration,
+            force_rresp, force_bresp);
     endfunction
 	
 endclass 

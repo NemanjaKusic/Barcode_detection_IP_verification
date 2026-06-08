@@ -34,6 +34,14 @@ package test_pkg;
 	`include "Tests/test_realistic_3.sv"
 	`include "Tests/test_realistic_4.sv"
 	`include "Tests/test_realistic_5.sv"
+	`include "Tests/test_back_to_back_start.sv"
+	`include "Tests/test_start_while_busy.sv"
+	`include "Tests/test_base_addr_low.sv"
+	`include "Tests/test_base_addr_high.sv"
+	`include "Tests/test_dirty_ddr.sv"
+	`include "Tests/test_misaligned_addr.sv"
+	`include "Tests/test_slverr.sv"
+	`include "Tests/test_decerr.sv"
 
 endpackage
 
