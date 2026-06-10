@@ -35,6 +35,10 @@ class axi_full_config extends uvm_object;
     // What response should the slave send to master
     bit [1:0] force_rresp = 2'b00;   // OKAY by default
     bit [1:0] force_bresp = 2'b00;   // OKAY by default 
+    
+    // Assertion enables - set to 0 to disable
+    bit enable_alignment_checks = 1;   // A16, A17 - disable in test_misaligned_addr
+    bit enable_4kb_checks = 1;   // A10, A11 - keep as warnings always
 
     // Constraints
     constraint c_latency_ranges {

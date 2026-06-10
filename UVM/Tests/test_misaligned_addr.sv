@@ -26,6 +26,8 @@ class test_misaligned_addr extends uvm_test;
         axi_cfg.set_mode(AXI_FULL_MODE_FAST);
         //axi_cfg.set_mode(AXI_FULL_MODE_BACKPRESSURE);
         //axi_cfg.set_mode(AXI_FULL_MODE_COMBINED);
+        // disabled - because its expected there would be misalignemnt errors here
+        axi_cfg.enable_alignment_checks = 0;        
 		uvm_config_db#(axi_full_config)::set(this, "env.full_master_agent", "axi_cfg", axi_cfg);
 		
 		shared_mem = memory_model::type_id::create("shared_mem");

@@ -27,6 +27,7 @@ class test_stress_combined extends uvm_test;
         //axi_cfg.set_mode(AXI_FULL_MODE_BACKPRESSURE);
         axi_cfg.set_mode(AXI_FULL_MODE_COMBINED);
 		uvm_config_db#(axi_full_config)::set(this, "env.full_master_agent", "axi_cfg", axi_cfg);
+		//axi_cfg.enable_4kb_checks = 0;
 		
 		shared_mem = memory_model::type_id::create("shared_mem");
         uvm_config_db#(memory_model)::set(this, "env.*", "shared_mem", shared_mem);

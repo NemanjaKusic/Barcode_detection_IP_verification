@@ -35,8 +35,9 @@ class axi_full_agent extends uvm_agent;
             `uvm_info("AXI_FULL_AGENT", "No config provided, using default (fast mode)", UVM_LOW)
             cfg = axi_full_config::type_id::create("axi_cfg");
         end
-        // Pass config down to the driver
+        // Pass config down to monitor and driver
         uvm_config_db#(axi_full_config)::set(this, "drv", "axi_cfg", cfg);
+        uvm_config_db#(axi_full_config)::set(this, "mon", "axi_cfg", cfg);
 			
 		mon = axi_full_monitor::type_id::create("mon", this);	
 	    drv = axi_full_driver::type_id::create("drv", this);
